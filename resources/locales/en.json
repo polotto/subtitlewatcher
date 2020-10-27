@@ -1,0 +1,16 @@
+{
+  "appTitle": "Subtitle watcher",
+  "downloadButton": "Download subtitle for a file",
+  "watchEnabledButton": "Start watch folder and download subtitle automatically",
+  "watchDisabledButton": "Stop watch folder and download subtitle automatically",
+  "doneDownloadTitle": "Done!",
+  "doneDownloadMsg": "Subtitle downloaded for the file: ",
+  "loadingWatcherTitle": "Folder watcher",
+  "loadingWatcherMsg": "Starting folder watcher, please wait...",
+  "doneWatcherTitle": "Folder watcher",
+  "doneWatcherMsg": "Watching files in the dir: ",
+  "loadingStopWatcherTitle": "Folder watcher",
+  "loadingStopWatcherMsg": "Stopping folder watcher, please wait...",
+  "stopWatcherTitle": "Folder watcher",
+  "stopWatcherMsg": "Folder watcher stopped"
+}
