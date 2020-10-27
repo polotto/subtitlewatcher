@@ -1,0 +1,16 @@
+{
+  "appTitle": "Subtitle watcher",
+  "downloadButton": "Baixar legenda para um arquivo",
+  "watchEnabledButton": "Começar a monitorar pasta e baixar legenda automaticamente",
+  "watchDisabledButton": "Para o monitoramento da pasta",
+  "doneDownloadTitle": "Pronto!",
+  "doneDownloadMsg": "Legenda transferida para o arquivo: ",
+  "loadingWatcherTitle": "Monitorar pasta",
+  "loadingWatcherMsg": "Iniciando o monitoramento da pasta, aguarde...",
+  "doneWatcherTitle": "Monitorar pasta",
+  "doneWatcherMsg": "Monitorando arquivos da pasta: ",
+  "loadingStopWatcherTitle": "Monitorar pasta",
+  "loadingStopWatcherMsg": "Parando o monitoramento da pasta, aguarde...",
+  "stopWatcherTitle": "Monitorar pasta",
+  "stopWatcherMsg": "Monitorar pasta encerrado"
+}

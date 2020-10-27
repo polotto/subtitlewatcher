@@ -4,6 +4,8 @@ fyne.io/fyne v1.3.4-0.20201023103433-9209c55e4e74 h1:VZg9RX75Y+dZLy3Df8mJq/Opou5
 fyne.io/fyne v1.3.4-0.20201023103433-9209c55e4e74/go.mod h1:o/4uedVTNRa0Bx2QzwmnnoU8bLh7Mz6+/IX8XTOKIlg=
 fyne.io/fyne v1.3.4-0.20201023203356-11512e07d7cb h1:C6UqE5dsAKwxgK0p4EH4UxiA2XIWgG9K624Q+c0AoUM=
 fyne.io/fyne v1.3.4-0.20201023203356-11512e07d7cb/go.mod h1:sSWN+58O2vpVNq6I819mHi+1DWKqV089dwJkW9sNARM=
+fyne.io/fyne v1.3.4-0.20201026201442-42acec9d2082 h1:+w9IFPrvqgfQsmA8qe8seF02VAvTONB+oNyiQL7ahQQ=
+fyne.io/fyne v1.3.4-0.20201026201442-42acec9d2082/go.mod h1:sSWN+58O2vpVNq6I819mHi+1DWKqV089dwJkW9sNARM=
 github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9 h1:1ltqoej5GtaWF8jaiA49HwsZD459jqm9YFz9ZtMFpQA=
 github.com/Kodeworks/golang-image-ico v0.0.0-20141118225523-73f0f4cfade9/go.mod h1:7uhhqiBaR4CpN0k9rMjOtjpcfGd6DG2m04zQxKnWQ0I=
 github.com/akavel/rsrc v0.8.0 h1:zjWn7ukO9Kc5Q62DOJCcxGpXC18RawVtYAGdz2aLlfw=

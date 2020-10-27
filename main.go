@@ -1,16 +1,3 @@
-// https://medium.com/@adiach3nko/package-management-with-go-modules-the-pragmatic-guide-c831b4eaaf31
-// https://github.com/fyne-io/fyne
-// https://github.com/matcornic/subify
-// https://github.com/radovskyb/watcher
-
-// https://github.com/fyne-io/fyne/issues/941
-// https://github.com/fyne-io/fyne/blob/86d26ebe4d97a525aa5cf1b6720186fc76d3b669/cmd/fyne_demo/screens/window.go
-
-// PR
-// https://github.com/fyne-io/fyne/pull/1222
-// https://github.com/fyne-io/fyne/pull/1449
-// https://github.com/fyne-io/fyne/issues/21
-// https://github.com/fyne-io/fyne/blob/master/cmd/fyne_demo/screens/widget.go#L100
 package main
 
 import (
@@ -21,6 +8,8 @@ import (
 	"fyne.io/fyne/storage"
 	"fyne.io/fyne/widget"
 	"strings"
+	maincontroller "subtitlewatcher/controllers"
+	"subtitlewatcher/messenger"
 )
 
 func uriToPath(uri string) string {
@@ -59,19 +48,22 @@ func openFolderDialog(w fyne.Window, chosen func(folderPath string)) {
 
 func main() {
 	var watchStr = map[string]string{}
-	watchStr["disabled"] = "Start watch folder and download subtitle automatically"
-	watchStr["enabled"] = "Stop watch folder and download subtitle automatically"
+
+	var msgs = messenger.ReadMessages()
+
+	watchStr["disabled"] = msgs["watchEnabledButton"]
+	watchStr["enabled"] = msgs["watchDisabledButton"]
 	var watchStarted = false
 
 	var appMain = app.New()
-	var w = appMain.NewWindow("Subtitle watcher")
+	var w = appMain.NewWindow(msgs["appTitle"])
 
 	w.Resize(fyne.NewSize(600, 500))
 
-	openFileBtn := widget.NewButton("Download subtitle for a file", func() {
-		openFileDialog(w, FileFormats, func(filePath string) {
-			downloadSubtitle(filePath, func() {
-				dialog.ShowInformation("Done!", "Subtitle downloaded for the file: "+filePath, w)
+	openFileBtn := widget.NewButton(msgs["downloadButton"], func() {
+		openFileDialog(w, maincontroller.FileFormats, func(filePath string) {
+			maincontroller.DownloadSubtitle(filePath, func() {
+				dialog.ShowInformation(msgs["doneDownloadTitle"], msgs["doneDownloadMsg"]+filePath, w)
 			}, func(err error) {
 				dialog.ShowError(err, w)
 			})
@@ -83,35 +75,40 @@ func main() {
 		watchStarted = !watchStarted
 		if watchStarted {
 			openFolderDialog(w, func(folderPath string) {
-				progress := dialog.NewProgressInfinite("Folder watcher", "Starting folder watcher, please wait...", w)
+				progress := dialog.NewProgressInfinite(msgs["loadingWatcherTitle"], msgs["loadingWatcherMsg"], w)
 				progress.Show()
-				subtitleWatcherStart(folderPath, func(folderPath string) {
+				maincontroller.SubtitleWatcherStart(folderPath, func(folderPath string) {
 					watchFolderBtn.Text = watchStr["enabled"]
 					watchFolderBtn.Importance = widget.HighImportance
 					watchFolderBtn.Refresh()
 					progress.Hide()
-					dialog.ShowInformation("Folder watcher", "Watching files in the dir '"+folderPath, w)
+					dialog.ShowInformation(msgs["doneWatcherTitle"], msgs["doneWatcherMsg"]+folderPath, w)
 				}, func(err error) {
 					progress.Hide()
 					dialog.ShowError(err, w)
 				})
 			})
 		} else {
-			progress := dialog.NewProgressInfinite("Folder watcher", "Starting folder watcher, please wait...", w)
+			progress := dialog.NewProgressInfinite(msgs["loadingStopWatcherTitle"], msgs["loadingStopWatcherMsg"], w)
 			progress.Show()
-			subtitleWatcherStop(func() {
+			maincontroller.SubtitleWatcherStop(func() {
 				watchFolderBtn.Text = watchStr["disabled"]
 				watchFolderBtn.Importance = widget.MediumImportance
 				watchFolderBtn.Refresh()
 				progress.Hide()
-				dialog.ShowInformation("Folder watcher", "Folder watcher stopped", w)
+				dialog.ShowInformation(msgs["stopWatcherTitle"], msgs["stopWatcherMsg"], w)
 			})
 		}
 	})
 
-	//grid := fyne.NewContainerWithLayout(layout.NewGridWrapLayout(fyne.NewSize(250, 250)), openFileBtn, watchFolderBtn)
 	hContainer := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), openFileBtn, watchFolderBtn, layout.NewSpacer())
 	vContainer := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), layout.NewSpacer(), hContainer, layout.NewSpacer())
 	w.SetContent(vContainer)
 	w.ShowAndRun()
+
+	defer func() {
+		if watchStarted {
+			maincontroller.SubtitleWatcherStop(nil)
+		}
+	}()
 }
