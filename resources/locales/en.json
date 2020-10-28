@@ -12,5 +12,6 @@
   "loadingStopWatcherTitle": "Folder watcher",
   "loadingStopWatcherMsg": "Stopping folder watcher, please wait...",
   "stopWatcherTitle": "Folder watcher",
-  "stopWatcherMsg": "Folder watcher stopped"
+  "stopWatcherMsg": "Folder watcher stopped",
+  "subtitleNotFoundError": "Subtitle not found"
 }

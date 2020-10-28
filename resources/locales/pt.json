@@ -12,5 +12,6 @@
   "loadingStopWatcherTitle": "Monitorar pasta",
   "loadingStopWatcherMsg": "Parando o monitoramento da pasta, aguarde...",
   "stopWatcherTitle": "Monitorar pasta",
-  "stopWatcherMsg": "Monitorar pasta encerrado"
+  "stopWatcherMsg": "Monitorar pasta encerrado",
+  "subtitleNotFoundError": "Legenda não encontrada"
 }

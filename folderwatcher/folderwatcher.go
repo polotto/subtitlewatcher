@@ -3,30 +3,11 @@ package folderwatcher
 import (
 	"fmt"
 	"github.com/radovskyb/watcher"
-	"io/ioutil"
 	"log"
+	"regexp"
 	"strings"
 	"time"
-	"regexp"
 )
-
-func filterDir(folderPath string) ([]string, error) {
-	files, err := ioutil.ReadDir(folderPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var filesFiltered []string
-	for _, f := range files {
-		if strings.HasPrefix(f.Name(), ".") || f.Name() == "Library" {
-			continue
-		} else {
-			filesFiltered = append(filesFiltered, folderPath + "/" +f.Name())
-		}
-	}
-	fmt.Print(filesFiltered)
-	return filesFiltered, nil
-}
 
 func New() *watcher.Watcher {
 	return watcher.New()
@@ -37,7 +18,7 @@ func Watch(w *watcher.Watcher, fileFormats []string, folderPath string, fileChan
 	// on the Event channel per watching cycle.
 	//
 	// If SetMaxEvents is not set, the default is to send all events.
-	w.SetMaxEvents(1)
+	w.SetMaxEvents(100)
 
 	// Only notify rename and move events.
 	w.FilterOps(watcher.Create)
@@ -49,22 +30,9 @@ func Watch(w *watcher.Watcher, fileFormats []string, folderPath string, fileChan
 	w.AddFilterHook(watcher.RegexFilterHook(r, false))
 	w.IgnoreHiddenFiles(true)
 
-	foldersFiltered, err := filterDir(folderPath)
-	if err != nil {
+	if err := w.AddRecursive(folderPath); err != nil {
 		log.Fatalln(err)
 		return err
-	} else {
-		for _, folder := range foldersFiltered {
-			if err := w.AddRecursive(folder); err != nil {
-				log.Fatalln(err)
-				return err
-			}
-		}
-		// test
-		/*if err := w.AddRecursive(folderPath + "/Downloads"); err != nil {
-			log.Fatalln(err)
-			return err
-		}*/
 	}
 
 	go func() {
