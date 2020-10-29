@@ -53,3 +53,10 @@ Abra [releases page](https://github.com/polotto/subtitlewatcher/releases) e faç
 
 - Tela para monitorar uma pasta:
 ![Tela para monitorar uma pasta](./images/screen3.png)
+
+## Special Thanks
+- [Fyne: ui toolkit for go](https://fyne.io/)
+- [Subify: subtitles finder for go](https://github.com/matcornic/subify)
+- [Open subtitle db for go](https://github.com/oz/osdb)
+- [Addic7ed for go](https://github.com/matcornic/addic7ed)
+- [Folders and files watcher for go](https://github.com/radovskyb/watcher)

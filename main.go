@@ -6,10 +6,12 @@ import (
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/storage"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	"strings"
 	maincontroller "subtitlewatcher/controllers"
 	"subtitlewatcher/messenger"
+	"subtitlewatcher/resources/images"
 )
 
 func uriToPath(uri string) string {
@@ -56,13 +58,18 @@ func main() {
 	var watchStarted = false
 
 	var appMain = app.New()
+	appMain.Settings().SetTheme(theme.DarkTheme())
+
+	res := fyne.NewStaticResource("icon", images.ResIconPng.StaticContent)
+	appMain.SetIcon(res)
+
 	var w = appMain.NewWindow(msgs["appTitle"])
 
 	w.Resize(fyne.NewSize(600, 500))
 
 	openFileBtn := widget.NewButton(msgs["downloadButton"], func() {
 		openFileDialog(w, maincontroller.FileFormats, func(filePath string) {
-			maincontroller.DownloadSubtitle(filePath, func() {
+			maincontroller.DownloadSubtitle(msgs["subtitleNotFoundError"], filePath, func() {
 				dialog.ShowInformation(msgs["doneDownloadTitle"], msgs["doneDownloadMsg"]+filePath, w)
 			}, func(err error) {
 				dialog.ShowError(err, w)
@@ -77,7 +84,7 @@ func main() {
 			openFolderDialog(w, func(folderPath string) {
 				progress := dialog.NewProgressInfinite(msgs["loadingWatcherTitle"], msgs["loadingWatcherMsg"], w)
 				progress.Show()
-				maincontroller.SubtitleWatcherStart(folderPath, func(folderPath string) {
+				maincontroller.SubtitleWatcherStart(msgs["subtitleNotFoundError"], folderPath, func(folderPath string) {
 					watchFolderBtn.Text = watchStr["enabled"]
 					watchFolderBtn.Importance = widget.HighImportance
 					watchFolderBtn.Refresh()
