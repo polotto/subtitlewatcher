@@ -13,5 +13,8 @@
   "loadingStopWatcherMsg": "Stopping folder watcher, please wait...",
   "stopWatcherTitle": "Folder watcher",
   "stopWatcherMsg": "Folder watcher stopped",
-  "subtitleNotFoundError": "Subtitle not found"
+  "subtitleNotFoundError": "Subtitle not found",
+  "lang1Label": "First language for the subtitle:",
+  "lang2Label": "Second language. It will be used if has no subtitle for first language:",
+  "actionsLabel": "Actions:"
 }

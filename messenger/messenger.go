@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"subtitlewatcher/resources/locales"
+	"subtitlewatcher/resources/tmp/locales"
 )
 
 func getLocale(defaultLang string, defaultLoc string) (string, string) {

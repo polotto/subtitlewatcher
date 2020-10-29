@@ -11,7 +11,7 @@ import (
 	"strings"
 	maincontroller "subtitlewatcher/controllers"
 	"subtitlewatcher/messenger"
-	"subtitlewatcher/resources/images"
+	"subtitlewatcher/resources/tmp/images"
 )
 
 func uriToPath(uri string) string {
@@ -52,6 +52,7 @@ func main() {
 	var watchStr = map[string]string{}
 
 	var msgs = messenger.ReadMessages()
+	maincontroller.LoadSettings()
 
 	watchStr["disabled"] = msgs["watchEnabledButton"]
 	watchStr["enabled"] = msgs["watchDisabledButton"]
@@ -66,6 +67,20 @@ func main() {
 	var w = appMain.NewWindow(msgs["appTitle"])
 
 	w.Resize(fyne.NewSize(600, 500))
+
+	lang1Label := widget.NewLabel(msgs["lang1Label"])
+	lang1Select := widget.NewSelect(maincontroller.Languages(), func(s string) {
+		maincontroller.Select(s, 0)
+	})
+	lang1Select.SetSelected(maincontroller.FindSelection(0))
+
+	lang2Label := widget.NewLabel(msgs["lang2Label"])
+	lang2Select := widget.NewSelect(maincontroller.Languages(), func(s string) {
+		maincontroller.Select(s, 1)
+	})
+	lang2Select.SetSelected(maincontroller.FindSelection(1))
+
+	actionsLabel := widget.NewLabel(msgs["langActions"])
 
 	openFileBtn := widget.NewButton(msgs["downloadButton"], func() {
 		openFileDialog(w, maincontroller.FileFormats, func(filePath string) {
@@ -108,8 +123,9 @@ func main() {
 		}
 	})
 
-	hContainer := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), layout.NewSpacer(), openFileBtn, watchFolderBtn, layout.NewSpacer())
-	vContainer := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), layout.NewSpacer(), hContainer, layout.NewSpacer())
+	vContainer := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), lang1Label, lang1Select,
+		lang2Label, lang2Select,
+		layout.NewSpacer(), actionsLabel, openFileBtn, watchFolderBtn)
 	w.SetContent(vContainer)
 	w.ShowAndRun()
 
@@ -117,5 +133,6 @@ func main() {
 		if watchStarted {
 			maincontroller.SubtitleWatcherStop(nil)
 		}
+		maincontroller.SaveSettings()
 	}()
 }
