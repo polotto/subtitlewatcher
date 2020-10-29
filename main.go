@@ -6,10 +6,12 @@ import (
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/storage"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 	"strings"
 	maincontroller "subtitlewatcher/controllers"
 	"subtitlewatcher/messenger"
+	"subtitlewatcher/resources/images"
 )
 
 func uriToPath(uri string) string {
@@ -56,6 +58,11 @@ func main() {
 	var watchStarted = false
 
 	var appMain = app.New()
+	appMain.Settings().SetTheme(theme.DarkTheme())
+
+	res := fyne.NewStaticResource("icon", images.ResIconPng.StaticContent)
+	appMain.SetIcon(res)
+
 	var w = appMain.NewWindow(msgs["appTitle"])
 
 	w.Resize(fyne.NewSize(600, 500))

@@ -8,6 +8,7 @@ import (
 	"subtitlewatcher/subtitle"
 )
 
+// https://www.loc.gov/standards/iso639-2/php/code_list.php
 var languages = []string{"pob", "eng"}
 var FileFormats = []string{".avi", ".mkv", ".mp4", ".m4v", ".mov", ".mpg", ".wmv"}
 var localWatcher *watcher.Watcher

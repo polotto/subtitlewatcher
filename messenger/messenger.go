@@ -2,11 +2,11 @@ package messenger
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
+	"subtitlewatcher/resources/locales"
 )
 
 func getLocale(defaultLang string, defaultLoc string) (string, string) {
@@ -51,26 +51,28 @@ func ReadMessages() map[string]string {
 	defaultLang := "en"
 	lang, _ := getLocale(defaultLang, "US")
 
-	jsonFile, err := os.Open("./resources/locales/"+lang+".json")
-	if err != nil {
-		jsonFile, err = os.Open("./resources/locales/"+defaultLang+".json")
-		if err != nil {
-			panic(err)
-		}
-	}
-	// defer the closing of our jsonFile so that we can parse it later on
-	defer jsonFile.Close()
-
-	byteValue, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		panic("erro to read json translation")
+	var jsonMsg map[string]string
+	var jsonBytes []byte
+	switch lang {
+	case "pb":
+		jsonBytes = locales.ResPtJson.StaticContent
+	default:
+		jsonBytes = locales.ResEnJson.StaticContent
 	}
 
-	var result map[string]string
-	err = json.Unmarshal(byteValue, &result)
+	err := json.Unmarshal(jsonBytes, &jsonMsg)
 	if err != nil {
 		panic("error to Unmarshal translation json")
 	}
 
-	return result
+	return jsonMsg
+}
+
+func Languages() []map[string]string {
+	var languages []map[string]string
+	err := json.Unmarshal(locales.ResLanguagesJson.StaticContent, &languages)
+	if err != nil {
+		panic(err)
+	}
+	return languages
 }
