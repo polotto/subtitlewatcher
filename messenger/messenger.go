@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"subtitlewatcher/resources/locales"
+	"subtitlewatcher/resources/tmp/locales"
 )
 
 func getLocale(defaultLang string, defaultLoc string) (string, string) {
@@ -68,9 +68,18 @@ func ReadMessages() map[string]string {
 	return jsonMsg
 }
 
-func Languages() []map[string]string {
+func LanguagesSubtitles() []map[string]string {
 	var languages []map[string]string
-	err := json.Unmarshal(locales.ResLanguagesJson.StaticContent, &languages)
+	err := json.Unmarshal(locales.ResSubtitlesJson.StaticContent, &languages)
+	if err != nil {
+		panic(err)
+	}
+	return languages
+}
+
+func LanguagesTranslations() []map[string]string {
+	var languages []map[string]string
+	err := json.Unmarshal(locales.ResTranslationsJson.StaticContent, &languages)
 	if err != nil {
 		panic(err)
 	}

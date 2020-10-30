@@ -13,5 +13,8 @@
   "loadingStopWatcherMsg": "Parando o monitoramento da pasta, aguarde...",
   "stopWatcherTitle": "Monitorar pasta",
   "stopWatcherMsg": "Monitorar pasta encerrado",
-  "subtitleNotFoundError": "Legenda não encontrada"
+  "subtitleNotFoundError": "Legenda não encontrada",
+  "lang1Label": "Primeira língua para a legenda:",
+  "lang2Label": "Segunda língua para a legenda. Ela será usada caso não seja encontrado nenhuma legenda para a primeira língua:",
+  "actionsLabel": "Ações:"
 }
