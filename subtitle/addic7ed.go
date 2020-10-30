@@ -53,7 +53,7 @@ var addic7edLangs = map[string]string{
 	"sin": "Sinhala",
 	"slo": "Slovak",
 	"slv": "Slovenian",
-	"es":  "Spanish",
+	"spa": "Spanish",
 	"swe": "Swedish",
 	"tam": "Tamil",
 	"tha": "Thai",

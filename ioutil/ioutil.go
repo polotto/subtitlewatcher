@@ -1,39 +1,55 @@
 package ioutil
 
 import (
-	"bufio"
-	"fmt"
+	"io/ioutil"
 	"os"
+	"os/user"
 )
+
+func UserHome() string {
+	usr, err := user.Current()
+	if err != nil {
+		return "./"
+	}
+	return usr.HomeDir
+}
+
+func MakeDirectoryIfNotExists(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.Mkdir(path, os.ModeDir|0755)
+	}
+	return nil
+}
 
 // readLines reads a whole file into memory
 // and returns a slice of its lines.
-func ReadLines(path string) ([]string, error) {
+func ReadFile(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
 	}
-	return lines, scanner.Err()
+
+	return data, err
 }
 
 // writeLines writes the lines to the given file.
-func WriteLines(lines []string, path string) error {
+func WriteFile(path string, data []byte) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	w := bufio.NewWriter(file)
-	for _, line := range lines {
-		fmt.Fprintln(w, line)
+	err = ioutil.WriteFile(path, data, 0644)
+	if err != nil {
+		return err
 	}
-	return w.Flush()
+
+	return nil
 }

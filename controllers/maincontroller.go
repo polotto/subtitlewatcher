@@ -6,21 +6,20 @@ import (
 	"log"
 	"strings"
 	"subtitlewatcher/folderwatcher"
-	"subtitlewatcher/ioutil"
 	"subtitlewatcher/messenger"
+	"subtitlewatcher/settings"
 	"subtitlewatcher/subtitle"
 )
 
-var langsAvailable []string
+var langsSubtitlesAvailable []string
 // https://www.loc.gov/standards/iso639-2/php/code_list.php
-var langsSubtitle = []string{"pb", "en"}
-var settingsOutput = "./settings.txt"
+var langsSubtitleChosen = []string{"pob", "eng"}
 
 var FileFormats = []string{".avi", ".mkv", ".mp4", ".m4v", ".mov", ".mpg", ".wmv"}
 var localWatcher *watcher.Watcher
 
 func DownloadSubtitle(errorMsg string, filePath string, onSuccess func(), onError func(err error)) {
-	err := subtitle.Get(langsSubtitle, filePath, errorMsg)
+	err := subtitle.Get(langsSubtitleChosen, filePath, errorMsg)
 	if err != nil {
 		onError(err)
 	} else {
@@ -32,7 +31,7 @@ func SubtitleWatcherStart(errorMsg string, folderPath string, onSuccess func(fol
 	localWatcher = folderwatcher.New()
 	err := folderwatcher.Watch(localWatcher, FileFormats, folderPath, func(filePath string) {
 		fmt.Printf(filePath)
-		err := subtitle.Get(langsSubtitle, filePath, errorMsg)
+		err := subtitle.Get(langsSubtitleChosen, filePath, errorMsg)
 		if err != nil {
 			log.Print(err)
 		}
@@ -53,50 +52,41 @@ func SubtitleWatcherStop(onSuccess func()) {
 }
 
 func Languages() []string {
-	return langsAvailable
+	return langsSubtitlesAvailable
 }
 
 func Select(selection string, index int) {
 	splitSelection := strings.Split(selection, " - ")[0]
-	langsSubtitle[index] = splitSelection
+	langsSubtitleChosen[index] = splitSelection
+
+	settings.WriteLanguages(langsSubtitleChosen)
 }
 
 func FindSelection(index int) string {
-	for _, lang := range langsAvailable {
-		if strings.Split(lang, " - ")[0] == langsSubtitle[index] {
+	for _, lang := range langsSubtitlesAvailable {
+		if strings.Split(lang, " - ")[0] == langsSubtitleChosen[index] {
 			return lang
 		}
 	}
 	return ""
 }
 
-func SaveSettings() {
-	_ = ioutil.WriteLines(langsSubtitle, settingsOutput)
+func SaveSettings() error {
+	return settings.WriteConfig()
 }
 
-func LoadSettings() {
-	langs := messenger.Languages()
+func LoadSettings() error {
+	langs := messenger.LanguagesSubtitles()
 
 	for _, lang := range langs {
-		langsAvailable = append(langsAvailable, lang["code"] + " - " + lang["language"])
+		langsSubtitlesAvailable = append(langsSubtitlesAvailable, lang["code"] + " - " + lang["language"])
 	}
 
-	settings, err := ioutil.ReadLines(settingsOutput)
+	err := settings.ReadConfig()
 	if err != nil {
-		return
+		return err
 	}
 
-	copy(langsSubtitle, settings)
-}
-
-func remove(slice []string, search string) []string {
-	index := 0
-	for i, s := range slice {
-		if s == search {
-			index = i
-			break
-		}
-	}
-
-	return append(slice[:index], slice[index+1:]...)
+	copy(langsSubtitleChosen, settings.Loaded.LangsSubtitle)
+	return nil
 }

@@ -52,7 +52,6 @@ func main() {
 	var watchStr = map[string]string{}
 
 	var msgs = messenger.ReadMessages()
-	maincontroller.LoadSettings()
 
 	watchStr["disabled"] = msgs["watchEnabledButton"]
 	watchStr["enabled"] = msgs["watchDisabledButton"]
@@ -65,6 +64,10 @@ func main() {
 	appMain.SetIcon(res)
 
 	var w = appMain.NewWindow(msgs["appTitle"])
+
+	if err := maincontroller.LoadSettings(); err != nil {
+		dialog.ShowError(err, w)
+	}
 
 	w.Resize(fyne.NewSize(600, 500))
 
@@ -133,6 +136,8 @@ func main() {
 		if watchStarted {
 			maincontroller.SubtitleWatcherStop(nil)
 		}
-		maincontroller.SaveSettings()
+		if err := maincontroller.SaveSettings(); err != nil {
+			dialog.ShowError(err, w)
+		}
 	}()
 }

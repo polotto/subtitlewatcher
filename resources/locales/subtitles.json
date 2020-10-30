@@ -1,0 +1,42 @@
+[
+  {
+    "code": "pob",
+    "language": "Brazilian portuguese"
+  },
+  {
+    "code": "dut",
+    "language": "Dutch"
+  },
+  {
+    "code": "eng",
+    "language": "English"
+  },
+  {
+    "code": "fre",
+    "language": "French"
+  },
+  {
+    "code": "ita",
+    "language": "Italian"
+  },
+  {
+    "code": "pol",
+    "language": "Polish"
+  },
+  {
+    "code": "spa",
+    "language": "Spanish"
+  },
+  {
+    "code": "swe",
+    "language": "Swedish"
+  },
+  {
+    "code": "tur",
+    "language": "Turkish"
+  },
+  {
+    "code": "rum",
+    "language": "Romanian"
+  }
+]
