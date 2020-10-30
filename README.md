@@ -17,7 +17,12 @@ Open [releases page](https://github.com/polotto/subtitlewatcher/releases) and do
 
 - For MacOs user: the application isn't assigned by Apple, you will need authorize the execution in **System Preferences / Security & Privacy** menu. 
 
-## Screenshots
+### Subtitle sources
+- [SubDB Web API](http://thesubdb.com/)
+- [OpenSubtitles API](http://trac.opensubtitles.org/projects/opensubtitles/wiki)
+- [Addic7ed](http://www.addic7ed.com/)
+
+### Screenshots
 - Main screen:
 ![main screen](./images/screen1.png)
 
@@ -44,7 +49,12 @@ Abra [releases page](https://github.com/polotto/subtitlewatcher/releases) e faç
 
 - Para usuário MacOs: a aplicação não é assinada pela Apple, você vai precisar autorizá-la no em **Preferência do Sistema / Segurança & Privacidade**(**System Preferences / Security & Privacy**).
 
-## Telas do aplicativo
+### Fonte das legendas
+- [SubDB Web API](http://thesubdb.com/)
+- [OpenSubtitles API](http://trac.opensubtitles.org/projects/opensubtitles/wiki)
+- [Addic7ed](http://www.addic7ed.com/)
+
+### Telas do aplicativo
 - Tela principal:
 ![Tela principal](./images/screen1.png)
 
