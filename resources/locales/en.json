@@ -3,6 +3,8 @@
   "downloadButton": "Download subtitle for a file",
   "watchEnabledButton": "Start watch folder and download subtitle automatically",
   "watchDisabledButton": "Stop watch folder and download subtitle automatically",
+  "downloadingSubtitleTitle": "Download subtitle for a file",
+  "downloadingSubtitleMsg": "Searching subtitle, please wait...",
   "doneDownloadTitle": "Done!",
   "doneDownloadMsg": "Subtitle downloaded for the file: ",
   "loadingWatcherTitle": "Folder watcher",

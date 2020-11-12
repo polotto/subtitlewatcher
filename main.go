@@ -87,9 +87,13 @@ func main() {
 
 	openFileBtn := widget.NewButton(msgs["downloadButton"], func() {
 		openFileDialog(w, maincontroller.FileFormats, func(filePath string) {
+			progress := dialog.NewProgressInfinite(msgs["downloadingSubtitleTitle"], msgs["downloadingSubtitleMsg"], w)
+			progress.Show()
 			maincontroller.DownloadSubtitle(msgs["subtitleNotFoundError"], filePath, func() {
+				progress.Hide()
 				dialog.ShowInformation(msgs["doneDownloadTitle"], msgs["doneDownloadMsg"]+filePath, w)
 			}, func(err error) {
+				progress.Hide()
 				dialog.ShowError(err, w)
 			})
 		})

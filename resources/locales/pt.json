@@ -3,6 +3,8 @@
   "downloadButton": "Baixar legenda para um arquivo",
   "watchEnabledButton": "Começar a monitorar pasta e baixar legenda automaticamente",
   "watchDisabledButton": "Para o monitoramento da pasta",
+  "downloadingSubtitleTitle": "Baixar legenda para um arquivo",
+  "downloadingSubtitleMsg": "Procurando legenda, aguarde...",
   "doneDownloadTitle": "Pronto!",
   "doneDownloadMsg": "Legenda transferida para o arquivo: ",
   "loadingWatcherTitle": "Monitorar pasta",
