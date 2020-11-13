@@ -63,7 +63,7 @@ func main() {
 	res := fyne.NewStaticResource("icon", images.ResIconPng.StaticContent)
 	appMain.SetIcon(res)
 
-	var w = appMain.NewWindow(msgs["appTitle"])
+	var w = appMain.NewWindow(msgs["appTitleWindow"])
 
 	if err := maincontroller.LoadSettings(); err != nil {
 		dialog.ShowError(err, w)
@@ -87,11 +87,11 @@ func main() {
 
 	openFileBtn := widget.NewButton(msgs["downloadButton"], func() {
 		openFileDialog(w, maincontroller.FileFormats, func(filePath string) {
-			progress := dialog.NewProgressInfinite(msgs["downloadingSubtitleTitle"], msgs["downloadingSubtitleMsg"], w)
+			progress := dialog.NewProgressInfinite(msgs["downloadSubtitleTitleDialogProgress"], msgs["downloadSubtitleMsgDialogProgress"], w)
 			progress.Show()
-			maincontroller.DownloadSubtitle(msgs["subtitleNotFoundError"], filePath, func() {
+			maincontroller.DownloadSubtitle(msgs["downloadSubtitleNotFoundDialogError"], filePath, func() {
 				progress.Hide()
-				dialog.ShowInformation(msgs["doneDownloadTitle"], msgs["doneDownloadMsg"]+filePath, w)
+				dialog.ShowInformation(msgs["downloadDoneTitleDialogInfo"], msgs["downloadDoneMsgDialogInfo"]+filePath, w)
 			}, func(err error) {
 				progress.Hide()
 				dialog.ShowError(err, w)
@@ -104,28 +104,28 @@ func main() {
 		watchStarted = !watchStarted
 		if watchStarted {
 			openFolderDialog(w, func(folderPath string) {
-				progress := dialog.NewProgressInfinite(msgs["loadingWatcherTitle"], msgs["loadingWatcherMsg"], w)
+				progress := dialog.NewProgressInfinite(msgs["watchLoadingTitleDialogProgress"], msgs["watchLoadingMsgDialogProgress"], w)
 				progress.Show()
-				maincontroller.SubtitleWatcherStart(msgs["subtitleNotFoundError"], folderPath, func(folderPath string) {
+				maincontroller.SubtitleWatcherStart(msgs["downloadSubtitleNotFoundDialogError"], folderPath, func(folderPath string) {
 					watchFolderBtn.Text = watchStr["enabled"]
 					watchFolderBtn.Importance = widget.HighImportance
 					watchFolderBtn.Refresh()
 					progress.Hide()
-					dialog.ShowInformation(msgs["doneWatcherTitle"], msgs["doneWatcherMsg"]+folderPath, w)
+					dialog.ShowInformation(msgs["watchDoneTitleDialogInfo"], msgs["watchDoneMsgDialogInfo"]+folderPath, w)
 				}, func(err error) {
 					progress.Hide()
 					dialog.ShowError(err, w)
 				})
 			})
 		} else {
-			progress := dialog.NewProgressInfinite(msgs["loadingStopWatcherTitle"], msgs["loadingStopWatcherMsg"], w)
+			progress := dialog.NewProgressInfinite(msgs["watchLoadingStopTitleDialogProgress"], msgs["watchLoadingStopMsgDialogProgress"], w)
 			progress.Show()
 			maincontroller.SubtitleWatcherStop(func() {
 				watchFolderBtn.Text = watchStr["disabled"]
 				watchFolderBtn.Importance = widget.MediumImportance
 				watchFolderBtn.Refresh()
 				progress.Hide()
-				dialog.ShowInformation(msgs["stopWatcherTitle"], msgs["stopWatcherMsg"], w)
+				dialog.ShowInformation(msgs["watchStopTitleDialogInfo"], msgs["watchStopMsgDialogInfo"], w)
 			})
 		}
 	})
