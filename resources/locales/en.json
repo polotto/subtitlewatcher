@@ -16,6 +16,9 @@
   "watchLoadingStopMsgDialogProgress": "Stopping folder watcher, please wait...",
   "watchStopTitleDialogInfo": "Folder watcher",
   "watchStopMsgDialogInfo": "Folder watcher stopped",
+  "watchLogsLabel" : "Watcher logs: ",
+  "watchLogsStatusFound" : "subtitle found",
+  "watchLogsStatusNotFound" : "subtitle not found",
   "lang1Label": "First language for the subtitle:",
   "lang2Label": "Second language. It will be used if has no subtitle for first language:",
   "actionsLabel": "Actions:"

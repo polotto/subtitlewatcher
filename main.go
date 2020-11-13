@@ -3,6 +3,7 @@ package main
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
+	"fyne.io/fyne/container"
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/storage"
@@ -12,6 +13,7 @@ import (
 	maincontroller "subtitlewatcher/controllers"
 	"subtitlewatcher/messenger"
 	"subtitlewatcher/resources/tmp/images"
+	"time"
 )
 
 func uriToPath(uri string) string {
@@ -99,6 +101,14 @@ func main() {
 		})
 	})
 
+	watchLogsLabel := widget.NewLabel(msgs["watchLogsLabel"])
+	watchLogsMultiLineEntry := widget.NewMultiLineEntry()
+	watchLogsMultiLineEntry.Disable()
+	watchLogsScroll := container.NewVScroll(watchLogsMultiLineEntry)
+	watchLogsScroll.SetMinSize(fyne.NewSize(10, 100))
+	watchLogsLabel.Hide()
+	watchLogsScroll.Hide()
+
 	var watchFolderBtn *widget.Button
 	watchFolderBtn = widget.NewButton(watchStr["disabled"], func() {
 		watchStarted = !watchStarted
@@ -110,11 +120,26 @@ func main() {
 					watchFolderBtn.Text = watchStr["enabled"]
 					watchFolderBtn.Importance = widget.HighImportance
 					watchFolderBtn.Refresh()
+					watchLogsLabel.Show()
+					watchLogsScroll.Show()
 					progress.Hide()
 					dialog.ShowInformation(msgs["watchDoneTitleDialogInfo"], msgs["watchDoneMsgDialogInfo"]+folderPath, w)
 				}, func(err error) {
+					watchLogsLabel.Hide()
+					watchLogsScroll.Hide()
 					progress.Hide()
 					dialog.ShowError(err, w)
+				}, func(found bool, log string) {
+					nowTime := time.Now()
+					var status string
+					if found {
+						status = msgs["watchLogsStatusFound"]
+					} else {
+						status = msgs["watchLogsStatusNotFound"]
+					}
+					nowTimeStr := nowTime.Format(time.RFC3339)
+					watchLogsMultiLineEntry.SetText(
+						watchLogsMultiLineEntry.Text + nowTimeStr + " - " + status + " - " + log + "\n")
 				})
 			})
 		} else {
@@ -124,15 +149,19 @@ func main() {
 				watchFolderBtn.Text = watchStr["disabled"]
 				watchFolderBtn.Importance = widget.MediumImportance
 				watchFolderBtn.Refresh()
+				watchLogsLabel.Hide()
+				watchLogsScroll.Hide()
 				progress.Hide()
 				dialog.ShowInformation(msgs["watchStopTitleDialogInfo"], msgs["watchStopMsgDialogInfo"], w)
 			})
 		}
 	})
 
-	vContainer := fyne.NewContainerWithLayout(layout.NewVBoxLayout(), lang1Label, lang1Select,
-		lang2Label, lang2Select,
-		layout.NewSpacer(), actionsLabel, openFileBtn, watchFolderBtn)
+	vContainer := fyne.NewContainerWithLayout(
+		layout.NewVBoxLayout(),
+		lang1Label, lang1Select, lang2Label, lang2Select,
+		layout.NewSpacer(),
+		actionsLabel, openFileBtn, watchFolderBtn, watchLogsLabel, watchLogsScroll)
 	w.SetContent(vContainer)
 	w.ShowAndRun()
 
