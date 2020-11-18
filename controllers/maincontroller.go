@@ -9,9 +9,11 @@ import (
 	"subtitlewatcher/messenger"
 	"subtitlewatcher/settings"
 	"subtitlewatcher/subtitle"
+	"subtitlewatcher/systemcontext"
 )
 
 var langsSubtitlesAvailable []string
+
 // https://www.loc.gov/standards/iso639-2/php/code_list.php
 var langsSubtitleChosen = []string{"pob", "eng"}
 
@@ -27,13 +29,17 @@ func DownloadSubtitle(errorMsg string, filePath string, onSuccess func(), onErro
 	}
 }
 
-func SubtitleWatcherStart(errorMsg string, folderPath string, onSuccess func(folderPath string), onError func(err error)) {
+func SubtitleWatcherStart(errorMsg string, folderPath string, onSuccess func(folderPath string),
+	onError func(err error), onUpdate func(found bool, log string)) {
 	localWatcher = folderwatcher.New()
 	err := folderwatcher.Watch(localWatcher, FileFormats, folderPath, func(filePath string) {
 		fmt.Printf(filePath)
 		err := subtitle.Get(langsSubtitleChosen, filePath, errorMsg)
 		if err != nil {
 			log.Print(err)
+			onUpdate(false, err.Error())
+		} else {
+			onUpdate(true, filePath)
 		}
 	})
 	if err != nil {
@@ -79,7 +85,7 @@ func LoadSettings() error {
 	langs := messenger.LanguagesSubtitles()
 
 	for _, lang := range langs {
-		langsSubtitlesAvailable = append(langsSubtitlesAvailable, lang["code"] + " - " + lang["language"])
+		langsSubtitlesAvailable = append(langsSubtitlesAvailable, lang["code"]+" - "+lang["language"])
 	}
 
 	err := settings.ReadConfig()
@@ -89,4 +95,16 @@ func LoadSettings() error {
 
 	copy(langsSubtitleChosen, settings.Loaded.LangsSubtitle)
 	return nil
+}
+
+func CheckSystemContextAvailable() bool {
+	return systemcontext.Available()
+}
+
+func AddSystemContext(onSuccess func(), onError func(err error)) {
+	if err := systemcontext.Configure(); err != nil {
+		onError(err)
+	} else {
+		onSuccess()
+	}
 }

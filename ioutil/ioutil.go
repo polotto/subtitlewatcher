@@ -14,6 +14,14 @@ func UserHome() string {
 	return usr.HomeDir
 }
 
+func ExecutablePath() string {
+	ex, err := os.Executable()
+	if err != nil {
+		return "./"
+	}
+	return ex
+}
+
 func MakeDirectoryIfNotExists(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return os.Mkdir(path, os.ModeDir|0755)

@@ -5,3 +5,8 @@ https://github.com/radovskyb/watcher
 
 https://github.com/fyne-io/fyne/issues/941
 https://github.com/fyne-io/fyne/blob/86d26ebe4d97a525aa5cf1b6720186fc76d3b669/cmd/fyne_demo/screens/window.go
+
+go mod init ...
+go get
+go get ....
+go get fyne.io/fyne@develop

@@ -5,15 +5,20 @@ import (
 	"strings"
 )
 
+func sliceFileName(file string) string {
+	fileSlices := strings.Split(file, ".")
+	return strings.Join(fileSlices[0:len(fileSlices)-1], ".")
+}
+
 func GenSubtitleName(inputFile string) string {
 	dir, file := filepath.Split(inputFile)
-	fileName := strings.Split(file, ".")[0]
-	return dir+fileName+".srt"
+	fileName := sliceFileName(file)
+	return dir + fileName + ".srt"
 }
 
 func GenFileName(inputFile string) string {
 	_, file := filepath.Split(inputFile)
-	fileName := strings.Split(file, ".")[0]
+	fileName := sliceFileName(file)
 	return fileName
 }
 
