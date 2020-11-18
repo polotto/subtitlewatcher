@@ -30,10 +30,10 @@ jobs:
         fi
 
     - name: setup env
-        run: |
+      run: |
           echo "::set-env name=GOPATH::$(go env GOPATH)"
           echo "::add-path::$(go env GOPATH)/bin"
-        shell: bash
+      shell: bash
 
     - name: Install fyne
       run: |
