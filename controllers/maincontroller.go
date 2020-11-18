@@ -9,6 +9,7 @@ import (
 	"subtitlewatcher/messenger"
 	"subtitlewatcher/settings"
 	"subtitlewatcher/subtitle"
+	"subtitlewatcher/systemcontext"
 )
 
 var langsSubtitlesAvailable []string
@@ -94,4 +95,16 @@ func LoadSettings() error {
 
 	copy(langsSubtitleChosen, settings.Loaded.LangsSubtitle)
 	return nil
+}
+
+func CheckSystemContextAvailable() bool {
+	return systemcontext.Available()
+}
+
+func AddSystemContext(onSuccess func(), onError func(err error)) {
+	if err := systemcontext.Configure(); err != nil {
+		onError(err)
+	} else {
+		onSuccess()
+	}
 }

@@ -21,5 +21,8 @@
   "watchLogsStatusNotFound" : "legenda não encontrada",
   "lang1Label": "Primeira língua para a legenda:",
   "lang2Label": "Segunda língua para a legenda. Ela será usada caso não seja encontrado nenhuma legenda para a primeira língua:",
-  "actionsLabel": "Ações:"
+  "actionsLabel": "Ações:",
+  "addSystemContextButton": "Adicionar o Subtitle Watcher no clique direito do sistema",
+  "addSystemContextTitleDialogInfo": "Clique direito do sistema",
+  "addSystemContextMsgDialogInfo": "Subtitle Watcher adicionado com sucesso"
 }

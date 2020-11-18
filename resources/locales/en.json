@@ -21,5 +21,8 @@
   "watchLogsStatusNotFound" : "subtitle not found",
   "lang1Label": "First language for the subtitle:",
   "lang2Label": "Second language. It will be used if has no subtitle for first language:",
-  "actionsLabel": "Actions:"
+  "actionsLabel": "Actions:",
+  "addSystemContextButton": "Add Subtitle Watcher to right click context menu",
+  "addSystemContextTitleDialogInfo": "Right click context",
+  "addSystemContextMsgDialogInfo": "Subtitle Watcher added with success"
 }

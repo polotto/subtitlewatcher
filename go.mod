@@ -8,4 +8,5 @@ require (
 	github.com/matcornic/addic7ed v0.2.0
 	github.com/oz/osdb v0.0.0-20190204162748-da06ada9cdc1
 	github.com/radovskyb/watcher v1.0.7
+	golang.org/x/sys v0.0.0-20201117222635-ba5294a509c7
 )

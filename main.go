@@ -157,11 +157,24 @@ func main() {
 		}
 	})
 
+	addSystemContextBtn := widget.NewButton(msgs["addSystemContextButton"], func() {
+		maincontroller.AddSystemContext(func() {
+			dialog.ShowInformation(msgs["addSystemContextTitleDialogInfo"], msgs["addSystemContextMsgDialogInfo"], w)
+		}, func(err error) {
+			dialog.ShowError(err, w)
+		})
+	})
+	if maincontroller.CheckSystemContextAvailable() {
+		addSystemContextBtn.Show()
+	} else {
+		addSystemContextBtn.Hide()
+	}
+
 	vContainer := fyne.NewContainerWithLayout(
 		layout.NewVBoxLayout(),
 		lang1Label, lang1Select, lang2Label, lang2Select,
 		layout.NewSpacer(),
-		actionsLabel, openFileBtn, watchFolderBtn, watchLogsLabel, watchLogsScroll)
+		actionsLabel, openFileBtn, watchFolderBtn, watchLogsLabel, watchLogsScroll, addSystemContextBtn)
 	w.SetContent(vContainer)
 	w.ShowAndRun()
 
