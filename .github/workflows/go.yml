@@ -29,6 +29,9 @@ jobs:
             dep ensure
         fi
         
+    - name: Install fyne
+      run: GO111MODULE=off go get fyne.io/fyne
+        
     - name: Generate resources
       run: ./resources.sh
 
