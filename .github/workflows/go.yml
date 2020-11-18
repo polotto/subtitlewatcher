@@ -30,7 +30,9 @@ jobs:
         fi
         
     - name: Install fyne
-      run: GO111MODULE=off go get fyne.io/fyne
+      run: |
+        export GOPATH=$HOME/go
+        GO111MODULE=off go get fyne.io/fyne
         
     - name: Generate resources
       run: ./resources.sh
