@@ -33,10 +33,10 @@ jobs:
       run: |
         echo "CGO_ENABLED=0" >> $GITHUB_ENV
         echo "${HOME}/goroot/bin" >> $GITHUB_PATH
-
+        
     - name: Install fyne
       run: |
-        GO111MODULE=off go get fyne.io/fyne
+        go get fyne.io/fyne
         
     - name: Generate resources
       run: ./resources.sh
