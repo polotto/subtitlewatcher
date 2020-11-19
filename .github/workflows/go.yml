@@ -33,10 +33,6 @@ jobs:
       run: |
         echo "CGO_ENABLED=0" >> $GITHUB_ENV
         echo "${HOME}/goroot/bin" >> $GITHUB_PATH
-
-    - name: Install project dependencies
-      run: |
-        go get
         
     - name: Generate resources
       run: ./resources.sh
