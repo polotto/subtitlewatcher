@@ -28,10 +28,15 @@ jobs:
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
         fi
+        
+    - name: Set env vars
+      run: |
+        echo "CGO_ENABLED=0" >> $GITHUB_ENV
+        echo "${HOME}/goroot/bin" >> $GITHUB_PATH
 
     - name: Install fyne
       run: |
-        GOBIN=$PWD/bin GO111MODULE=off go get fyne.io/fyne
+        GO111MODULE=off go get fyne.io/fyne
         
     - name: Generate resources
       run: ./resources.sh
