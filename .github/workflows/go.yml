@@ -37,9 +37,7 @@ jobs:
     - name: Install fyne
       run: |
         GO111MODULE=off go get fyne.io/fyne
-        
-    - name: Generate resources
-      run: ./resources.sh
+        ./resources.sh
 
     - name: Build
       run: go build -v .
