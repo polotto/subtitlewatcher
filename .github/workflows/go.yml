@@ -38,13 +38,15 @@ jobs:
         GO111MODULE=off go get golang.org/x/lint/golint
         GO111MODULE=off go get honnef.co/go/tools/cmd/staticcheck
         
-    - name: Install fyne
+    - name: Install fyne cmd tools
       run: |
         GO111MODULE=off go get fyne.io/fyne/cmd/fyne
-        ./resources.sh
+        
+    - name: Generate resource files
+      run: ./resources.sh
 
-    - name: Build
-      run: go build -v .
+    - name: Generate packages
+      run: ./releaseLocal.sh
 
     - name: Test
       run: go test -v .
