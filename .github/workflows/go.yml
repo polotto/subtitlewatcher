@@ -29,15 +29,9 @@ jobs:
             dep ensure
         fi
 
-    - name: setup env
-      run: |
-          echo "::set-env name=GOPATH::$(go env GOPATH)"
-          echo "::add-path::$(go env GOPATH)/bin"
-      shell: bash
-
     - name: Install fyne
       run: |
-        GO111MODULE=off go get fyne.io/fyne
+        GOBIN=$PWD/bin GO111MODULE=off go get fyne.io/fyne
         
     - name: Generate resources
       run: ./resources.sh
