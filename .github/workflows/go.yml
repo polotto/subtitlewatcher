@@ -67,11 +67,11 @@ jobs:
         NAME_LIN="$DIST_LIN""$NAME_BIN""_linux"
         NAME_DAR="$DIST_LIN""$NAME_BIN""_darwin"
 
-        fyne package -os windows -icon "icon.png" -release -name "$NAME_WIN".exe &&
+        fyne package -os windows -icon "icon.png" -release -appID "$APP_ID" -name "$NAME_WIN".exe &&
         fyne package -os linux -icon "icon.png" -release -name $NAME_LIN &&
         fyne package -os darwin -icon "icon.png" -release -appID "$APP_ID" -name $NAME_DAR
 
-        zip -r "$NAME_WIN".zip "$NAME_WIN".exe
+        zip "$NAME_WIN".zip "$NAME_WIN".exe
         zip -r "$NAME_DAR".zip "$NAME_DAR".app
 
     - name: Upload zips
