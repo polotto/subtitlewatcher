@@ -67,9 +67,9 @@ jobs:
         NAME_LIN="$DIST_LIN""$NAME_BIN""_linux"
         NAME_DAR="$DIST_LIN""$NAME_BIN""_darwin"
 
-        fyne package -os windows -icon "icon.png" -release -appID "$APP_ID" -name "$NAME_WIN".exe &&
-        fyne package -os linux -icon "icon.png" -release -name $NAME_LIN &&
-        fyne package -os darwin -icon "icon.png" -release -appID "$APP_ID" -name $NAME_DAR
+        CC=x86_64-w64-mingw32-gcc fyne package -os windows -icon "icon.png" -release -appID "$APP_ID" -name "$NAME_WIN".exe &&
+        CC=gcc fyne package -os linux -icon "icon.png" -release -name $NAME_LIN &&
+        CC=o32-clang fyne package -os darwin -icon "icon.png" -release -appID "$APP_ID" -name $NAME_DAR
 
         zip "$NAME_WIN".zip "$NAME_WIN".exe
         zip -r "$NAME_DAR".zip "$NAME_DAR".app
