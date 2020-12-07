@@ -16,12 +16,12 @@ jobs:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.13
+        go-version: '^1.15.x'
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: Get dependencies
+    - name: Get dependencies Go
       run: |
         go get -v -t -d ./...
         if [ -f Gopkg.toml ]; then
@@ -29,22 +29,64 @@ jobs:
             dep ensure
         fi
         
-    - name: Install fyne
-      run: GO111MODULE=off go get fyne.io/fyne
+    - name: Get dependencies Fyne
+      run: |
+        sudo apt-get install golang gcc libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev libx11-dev xorg-dev
+        sudo apt-get install gcc-mingw-w64 clang
+        GO111MODULE=off go get golang.org/x/tools/cmd/goimports                               
+        GO111MODULE=off go get github.com/fzipp/gocyclo/cmd/gocyclo
+        GO111MODULE=off go get golang.org/x/lint/golint
+        GO111MODULE=off go get honnef.co/go/tools/cmd/staticcheck
         
-    - name: Generate resources
-      run: ./resources.sh
+    - name: Install fyne cmd tools
+      run: |
+        GO111MODULE=off go get fyne.io/fyne/cmd/fyne
+        
+    - name: Generate resource files
+      run: |
+        mkdir -p ./resources/tmp/locales
+        fyne bundle -package "locales" -prefix "Res" ./resources/locales > ./resources/tmp/locales/locales.go
+        mkdir -p ./resources/tmp/images
+        fyne bundle -package "images" -prefix "Res" ./resources/images > ./resources/tmp/images/images.go
 
-    - name: Build
-      run: go build -v .
+    - name: Generate packages
+      run: |
+        NAME_BIN="subtitlewatcher"
+        APP_ID="subtitlewatcher/polotto/com.github"
+        DIST="./fyne-cross"
 
-    - name: Test
-      run: go test -v .
+        DIST_WIN="$DIST/windows/"
+        DIST_LIN="$DIST/linux/"
+        DIST_DAR="$DIST/darwin/"
 
-    - name: Create a Release
-      uses: actions/create-release@v1.1.4
+        mkdir -p $DIST_WIN
+        mkdir -p $DIST_LIN
+        mkdir -p $DIST_DAR
+
+        NAME_WIN="$DIST_WIN""$NAME_BIN""_windows"
+        NAME_LIN="$DIST_LIN""$NAME_BIN""_linux"
+        NAME_DAR="$DIST_LIN""$NAME_BIN""_darwin"
+
+        fyne package -os windows -icon "icon.png" -release -appID "$APP_ID" -name "$NAME_WIN".exe &&
+        fyne package -os linux -icon "icon.png" -release -name $NAME_LIN &&
+        fyne package -os darwin -icon "icon.png" -release -appID "$APP_ID" -name $NAME_DAR
+
+        zip "$NAME_WIN".zip "$NAME_WIN".exe
+        zip -r "$NAME_DAR".zip "$NAME_DAR".app
+
+    - name: Upload zips
+      uses: actions/upload-artifact@v2.2.1
       with:
-        # The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag
-        tag_name: github.GITHUB_REF
-        # The name of the release. For example, `Release v1.0.1`
-        release_name: Subtitlewatcher github.GITHUB_REF
+        name: subtitlewatcher_windows.zip
+        path: ./fyne-cross/windows/subtitlewatcher_windows.zip
+
+#    - name: Test
+#      run: go test -v .
+
+#    - name: Create a Release
+#      uses: actions/create-release@v1.1.4
+#      with:
+#        # The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag
+#        tag_name: github.GITHUB_REF
+#        # The name of the release. For example, `Release v1.0.1`
+#        release_name: Subtitlewatcher github.GITHUB_REF
