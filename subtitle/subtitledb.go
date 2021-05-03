@@ -94,7 +94,7 @@ func subtitles(hash string, language string) ([]byte, error) {
 	return content, nil
 }
 
-//Get get subtitle in the subtitleDb
+// SubtitleDb Get get subtitle in the subtitleDb
 func SubtitleDb(languages []string, inputFile string, errorMsg string) error {
 	hash, err := getHashOfVideo(inputFile)
 	if err != nil {
@@ -105,10 +105,8 @@ func SubtitleDb(languages []string, inputFile string, errorMsg string) error {
 
 	for _, language := range languages {
 		subtitle, err := subtitles(hash, subdbLangs[language])
-		if err != nil {
-			return err
-		}
-		if len(subtitle) != 0 {
+
+		if len(subtitle) != 0 && err == nil {
 			err = ioutil.WriteFile(GenSubtitleName(inputFile), subtitle, 0644)
 			if err != nil {
 				return err

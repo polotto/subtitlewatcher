@@ -81,12 +81,10 @@ func OpenSubtitleDb(languages []string, inputFile string, errorMsg string) error
 	}
 
 	for _, language := range languages {
-		subs, err := client.FileSearch(inputFile, []string{osLangs[language]})
-		if err != nil {
-			return err
-		}
+		actualLang := []string{osLangs[language]}
+		subs, err := client.FileSearch(GenFileName(inputFile), actualLang)
 
-		if subs != nil {
+		if subs != nil && err == nil {
 			if err := client.DownloadTo(&subs[0], GenSubtitleName(inputFile)); err != nil {
 				return err
 			}

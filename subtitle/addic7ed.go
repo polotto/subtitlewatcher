@@ -68,11 +68,8 @@ func Addic7ed(languages []string, inputFile string, errorMsg string) error {
 
 	for _, language := range languages {
 		show, subtitle, err := c.SearchBest(GenFileName(inputFile), addic7edLangs[language])
-		if err != nil {
-			return err
-		}
 
-		if show != "" {
+		if show != "" && err == nil {
 			if err := subtitle.DownloadTo(GenSubtitleName(inputFile)); err != nil {
 				return err
 			}

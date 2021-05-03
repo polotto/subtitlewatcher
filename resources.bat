@@ -1,6 +1,6 @@
 @echo off
 
-mkdir -p .\resources\tmp\locales
+if not exist ".\resources\tmp\locales" mkdir .\resources\tmp\locales
 fyne bundle -package locales -prefix Res .\resources\locales > .\resources\tmp\locales\locales.go
-mkdir -p .\resources\tmp\images
+if not exist ".\resources\tmp\images" mkdir .\resources\tmp\images
 fyne bundle -package images -prefix Res .\resources\images > .\resources\tmp\images\images.go
