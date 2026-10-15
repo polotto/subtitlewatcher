@@ -1,189 +1,215 @@
+// subtitlewatcher downloads subtitles from OpenSubtitles for a video file or
+// for every new video that shows up in a watched folder. Without arguments it
+// opens a small web interface in the browser.
 package main
 
 import (
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/container"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/storage"
-	"fyne.io/fyne/theme"
-	"fyne.io/fyne/widget"
+	"context"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"io/fs"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
-	maincontroller "subtitlewatcher/controllers"
-	"subtitlewatcher/messenger"
-	"subtitlewatcher/resources/tmp/images"
 	"time"
 )
 
-func uriToPath(uri string) string {
-	return strings.Replace(uri, "file://", "", 1)
+const usage = `usage:
+  subtitlewatcher                      open the graphical interface
+  subtitlewatcher [-lang pt-br,en] get <video>...
+  subtitlewatcher [-lang pt-br,en] [-every 10s] watch <folder>
+
+  subtitlewatcher version
+
+Settings come from the interface or from these variables:
+  OPENSUBTITLES_USERNAME   optional, raises the daily download limit
+  OPENSUBTITLES_PASSWORD   optional
+  OPENSUBTITLES_API_KEY    only needed when this build has no key built in
+`
+
+// Set at build time: -ldflags "-X main.version=1.2.3 -X main.defaultAPIKey=..."
+var (
+	version       = "0.0.0-dev"
+	defaultAPIKey string
+)
+
+var videoExts = map[string]bool{
+	".avi": true, ".mkv": true, ".mp4": true, ".m4v": true,
+	".mov": true, ".mpg": true, ".mpeg": true, ".wmv": true, ".webm": true,
 }
 
-func openFileDialog(w fyne.Window, fileFormats []string, chosen func(filePath string)) {
-	fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
-		if err == nil && reader == nil {
-			return
-		}
-		if err != nil {
-			dialog.ShowError(err, w)
-			return
-		}
-		filePath := uriToPath(reader.URI().String())
-		chosen(filePath)
-	}, w)
-	fd.SetFilter(storage.NewExtensionFileFilter(fileFormats))
-	fd.Show()
+type config struct {
+	// APIKey overrides the key built into the binary.
+	APIKey   string   `json:"apiKey"`
+	Username string   `json:"username"`
+	Password string   `json:"password"`
+	Langs    []string `json:"langs"`
+	Folder   string   `json:"folder"`
 }
 
-func openFolderDialog(w fyne.Window, chosen func(folderPath string)) {
-	dialog.ShowFolderOpen(func(list fyne.ListableURI, err error) {
-		if err != nil {
-			dialog.ShowError(err, w)
-			return
+func (c config) key() string {
+	if c.APIKey != "" {
+		return c.APIKey
+	}
+	return defaultAPIKey
+}
+
+func configPath() string {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		dir = "."
+	}
+	return filepath.Join(dir, "subtitlewatcher", "config.json")
+}
+
+// loadConfig reads the saved settings; environment variables win over them.
+func loadConfig() config {
+	cfg := config{Langs: []string{"pt-br", "en"}}
+	if data, err := os.ReadFile(configPath()); err == nil {
+		json.Unmarshal(data, &cfg)
+	}
+	for env, field := range map[string]*string{
+		"OPENSUBTITLES_API_KEY":  &cfg.APIKey,
+		"OPENSUBTITLES_USERNAME": &cfg.Username,
+		"OPENSUBTITLES_PASSWORD": &cfg.Password,
+	} {
+		if v := os.Getenv(env); v != "" {
+			*field = v
 		}
-		if list == nil {
-			return
-		}
-		folderPath := uriToPath(list.String())
-		chosen(folderPath)
-	}, w)
+	}
+	return cfg
+}
+
+func saveConfig(cfg config) error {
+	data, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(configPath()), 0o700); err != nil {
+		return err
+	}
+	return os.WriteFile(configPath(), data, 0o600)
 }
 
 func main() {
-	var watchStr = map[string]string{}
+	log.SetFlags(log.Ltime)
+	cfg := loadConfig()
+	langFlag := flag.String("lang", strings.Join(cfg.Langs, ","), "subtitle languages in order of preference")
+	every := flag.Duration("every", 10*time.Second, "how often watch scans the folder")
+	flag.Usage = func() { fmt.Fprint(os.Stderr, usage) }
+	flag.Parse()
 
-	var msgs = messenger.ReadMessages()
-
-	watchStr["disabled"] = msgs["watchEnabledButton"]
-	watchStr["enabled"] = msgs["watchDisabledButton"]
-	var watchStarted = false
-
-	var appMain = app.New()
-	appMain.Settings().SetTheme(theme.DarkTheme())
-
-	res := fyne.NewStaticResource("icon", images.ResIconPng.StaticContent)
-	appMain.SetIcon(res)
-
-	var w = appMain.NewWindow(msgs["appTitleWindow"])
-
-	if err := maincontroller.LoadSettings(); err != nil {
-		dialog.ShowError(err, w)
+	if flag.Arg(0) == "version" {
+		fmt.Println("subtitlewatcher", version)
+		return
 	}
-
-	w.Resize(fyne.NewSize(600, 500))
-
-	lang1Label := widget.NewLabel(msgs["lang1Label"])
-	lang1Select := widget.NewSelect(maincontroller.Languages(), func(s string) {
-		maincontroller.Select(s, 0)
-	})
-	lang1Select.SetSelected(maincontroller.FindSelection(0))
-
-	lang2Label := widget.NewLabel(msgs["lang2Label"])
-	lang2Select := widget.NewSelect(maincontroller.Languages(), func(s string) {
-		maincontroller.Select(s, 1)
-	})
-	lang2Select.SetSelected(maincontroller.FindSelection(1))
-
-	actionsLabel := widget.NewLabel(msgs["langActions"])
-
-	openFileBtn := widget.NewButton(msgs["downloadButton"], func() {
-		openFileDialog(w, maincontroller.FileFormats, func(filePath string) {
-			progress := dialog.NewProgressInfinite(msgs["downloadSubtitleTitleDialogProgress"], msgs["downloadSubtitleMsgDialogProgress"], w)
-			progress.Show()
-			maincontroller.DownloadSubtitle(msgs["downloadSubtitleNotFoundDialogError"], filePath, func() {
-				progress.Hide()
-				dialog.ShowInformation(msgs["downloadDoneTitleDialogInfo"], msgs["downloadDoneMsgDialogInfo"]+filePath, w)
-			}, func(err error) {
-				progress.Hide()
-				dialog.ShowError(err, w)
-			})
-		})
-	})
-
-	watchLogsLabel := widget.NewLabel(msgs["watchLogsLabel"])
-	watchLogsMultiLineEntry := widget.NewMultiLineEntry()
-	watchLogsMultiLineEntry.Disable()
-	watchLogsScroll := container.NewVScroll(watchLogsMultiLineEntry)
-	watchLogsScroll.SetMinSize(fyne.NewSize(10, 100))
-	watchLogsLabel.Hide()
-	watchLogsScroll.Hide()
-
-	var watchFolderBtn *widget.Button
-	watchFolderBtn = widget.NewButton(watchStr["disabled"], func() {
-		watchStarted = !watchStarted
-		if watchStarted {
-			openFolderDialog(w, func(folderPath string) {
-				progress := dialog.NewProgressInfinite(msgs["watchLoadingTitleDialogProgress"], msgs["watchLoadingMsgDialogProgress"], w)
-				progress.Show()
-				maincontroller.SubtitleWatcherStart(msgs["downloadSubtitleNotFoundDialogError"], folderPath, func(folderPath string) {
-					watchFolderBtn.Text = watchStr["enabled"]
-					watchFolderBtn.Importance = widget.HighImportance
-					watchFolderBtn.Refresh()
-					watchLogsLabel.Show()
-					watchLogsScroll.Show()
-					progress.Hide()
-					dialog.ShowInformation(msgs["watchDoneTitleDialogInfo"], msgs["watchDoneMsgDialogInfo"]+folderPath, w)
-				}, func(err error) {
-					watchLogsLabel.Hide()
-					watchLogsScroll.Hide()
-					progress.Hide()
-					dialog.ShowError(err, w)
-				}, func(found bool, log string) {
-					nowTime := time.Now()
-					var status string
-					if found {
-						status = msgs["watchLogsStatusFound"]
-					} else {
-						status = msgs["watchLogsStatusNotFound"]
-					}
-					nowTimeStr := nowTime.Format(time.RFC3339)
-					watchLogsMultiLineEntry.SetText(
-						watchLogsMultiLineEntry.Text + nowTimeStr + " - " + status + " - " + log + "\n")
-				})
-			})
-		} else {
-			progress := dialog.NewProgressInfinite(msgs["watchLoadingStopTitleDialogProgress"], msgs["watchLoadingStopMsgDialogProgress"], w)
-			progress.Show()
-			maincontroller.SubtitleWatcherStop(func() {
-				watchFolderBtn.Text = watchStr["disabled"]
-				watchFolderBtn.Importance = widget.MediumImportance
-				watchFolderBtn.Refresh()
-				watchLogsLabel.Hide()
-				watchLogsScroll.Hide()
-				progress.Hide()
-				dialog.ShowInformation(msgs["watchStopTitleDialogInfo"], msgs["watchStopMsgDialogInfo"], w)
-			})
+	if flag.NArg() == 0 {
+		if err := gui(cfg); err != nil {
+			log.Fatal(err)
 		}
-	})
-
-	addSystemContextBtn := widget.NewButton(msgs["addSystemContextButton"], func() {
-		maincontroller.AddSystemContext(func() {
-			dialog.ShowInformation(msgs["addSystemContextTitleDialogInfo"], msgs["addSystemContextMsgDialogInfo"], w)
-		}, func(err error) {
-			dialog.ShowError(err, w)
-		})
-	})
-	if maincontroller.CheckSystemContextAvailable() {
-		addSystemContextBtn.Show()
-	} else {
-		addSystemContextBtn.Hide()
+		return
 	}
+	if flag.NArg() < 2 {
+		flag.Usage()
+		os.Exit(2)
+	}
+	if cfg.key() == "" {
+		log.Fatal("this build has no API key: set OPENSUBTITLES_API_KEY (https://www.opensubtitles.com/consumers)")
+	}
+	c := newClient(cfg.key(), cfg.Username, cfg.Password)
+	langs := strings.Split(*langFlag, ",")
 
-	vContainer := fyne.NewContainerWithLayout(
-		layout.NewVBoxLayout(),
-		lang1Label, lang1Select, lang2Label, lang2Select,
-		layout.NewSpacer(),
-		actionsLabel, openFileBtn, watchFolderBtn, watchLogsLabel, watchLogsScroll, addSystemContextBtn)
-	w.SetContent(vContainer)
-	w.ShowAndRun()
+	switch flag.Arg(0) {
+	case "get":
+		failed := false
+		for _, video := range flag.Args()[1:] {
+			if !logFetch(c, video, langs) {
+				failed = true
+			}
+		}
+		if failed {
+			os.Exit(1)
+		}
+	case "watch":
+		dir := flag.Arg(1)
+		log.Printf("watching %s", dir)
+		err := watch(context.Background(), dir, *every, func(video string) { logFetch(c, video, langs) })
+		if err != nil {
+			log.Fatal(err)
+		}
+	default:
+		flag.Usage()
+		os.Exit(2)
+	}
+}
 
-	defer func() {
-		if watchStarted {
-			maincontroller.SubtitleWatcherStop(nil)
+func logFetch(c *client, video string, langs []string) bool {
+	lang, remaining, err := c.Fetch(video, langs)
+	if err != nil {
+		log.Printf("%s: %v", video, err)
+		return false
+	}
+	log.Printf("%s: saved %s subtitle (%d downloads left today)", video, lang, remaining)
+	return true
+}
+
+// watch polls the folder until ctx ends and calls found once for each video
+// that appears after it starts, when its size stops changing and it has no
+// .srt yet.
+func watch(ctx context.Context, dir string, every time.Duration, found func(video string)) error {
+	if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+		return fmt.Errorf("%s is not a folder", dir)
+	}
+	seen := scan(dir)
+	pending := map[string]int64{}
+	tick := time.NewTicker(every)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-tick.C:
 		}
-		if err := maincontroller.SaveSettings(); err != nil {
-			dialog.ShowError(err, w)
+		for path, size := range scan(dir) {
+			if _, ok := seen[path]; ok {
+				continue
+			}
+			if prev, ok := pending[path]; !ok || prev != size {
+				pending[path] = size // still being copied or downloaded
+				continue
+			}
+			delete(pending, path)
+			seen[path] = size
+			if _, err := os.Stat(srtPath(path)); err == nil {
+				continue
+			}
+			found(path)
 		}
-	}()
+	}
+}
+
+// scan returns the size of every visible video file under dir.
+func scan(dir string) map[string]int64 {
+	found := map[string]int64{}
+	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if strings.HasPrefix(d.Name(), ".") && path != dir {
+			if d.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if d.IsDir() || !videoExts[strings.ToLower(filepath.Ext(path))] {
+			return nil
+		}
+		if info, err := d.Info(); err == nil && info.Size() > 0 {
+			found[path] = info.Size()
+		}
+		return nil
+	})
+	return found
 }
