@@ -1,0 +1,408 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subtitle Watcher</title>
+<style>
+:root {
+  --bg: #f6f6f4; --card: #fff; --text: #1d1d1b; --muted: #6b6b66; --line: #e2e2dd;
+  --accent: #2f6fdf; --accent-text: #fff; --ok: #1f8a4c; --err: #c23b32;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161615; --card: #20201f; --text: #ededea; --muted: #9b9b95; --line: #33332f;
+    --accent: #5b8ff0; --accent-text: #0d0d0c; --ok: #4cc27f; --err: #f0726a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 4px; }
+p { margin: 0 0 12px; color: var(--muted); }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 16px; }
+.row { display: flex; gap: 8px; }
+.row input { flex: 1; min-width: 0; }
+input, select { font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
+label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+button { font: inherit; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 8px; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+button:disabled { opacity: .5; cursor: default; }
+.actions { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.status { font-size: 14px; color: var(--muted); }
+.ok { color: var(--ok); } .err { color: var(--err); }
+.banner { border-color: var(--accent); }
+ul { list-style: none; margin: 0; padding: 0; }
+li { padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; overflow-wrap: anywhere; }
+li:first-child { border-top: 0; }
+li small { color: var(--muted); display: block; }
+details summary { cursor: pointer; font-weight: 600; }
+h3 { font-size: 14px; margin: 18px 0 2px; }
+#advanced { margin-top: 18px; }
+#advanced summary { font-weight: 500; font-size: 14px; color: var(--muted); }
+a { color: var(--accent); }
+footer { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Subtitle Watcher</h1>
+  <p data-t="tagline"></p>
+
+  <section id="needKey" class="banner" hidden>
+    <h2 data-t="needKeyTitle"></h2>
+    <p data-t="needKeyText"></p>
+  </section>
+
+  <section>
+    <h2 data-t="getTitle"></h2>
+    <p data-t="getText"></p>
+    <div class="row">
+      <input id="file" data-ph="filePlaceholder">
+      <button data-t="choose" onclick="choose(false)"></button>
+    </div>
+    <div class="actions">
+      <button class="primary" id="getBtn" data-t="download" onclick="getOne()"></button>
+      <span class="status" id="getStatus"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-t="watchTitle"></h2>
+    <p data-t="watchText"></p>
+    <div class="row">
+      <input id="folder" data-ph="folderPlaceholder">
+      <button data-t="choose" onclick="choose(true)"></button>
+    </div>
+    <div class="actions">
+      <button class="primary" id="watchBtn" onclick="toggleWatch()"></button>
+      <span class="status" id="watchStatus"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-t="activity"></h2>
+    <ul id="events"></ul>
+  </section>
+
+  <section>
+    <details id="settings">
+      <summary data-t="settings"></summary>
+      <h3 data-t="accountTitle"></h3>
+      <p data-t="accountText"></p>
+      <p><a href="https://www.opensubtitles.com/en/users/sign_up" target="_blank" rel="noopener" data-t="signUp"></a></p>
+      <label for="username" data-t="username"></label>
+      <input id="username" autocomplete="username">
+      <label for="password" data-t="password"></label>
+      <input id="password" type="password" autocomplete="current-password">
+      <p class="status" id="accountStatus" style="margin-top:6px"></p>
+      <h3 data-t="langsTitle"></h3>
+      <label for="lang1" data-t="lang1"></label>
+      <select id="lang1"></select>
+      <label for="lang2" data-t="lang2"></label>
+      <select id="lang2"></select>
+      <details id="advanced">
+        <summary data-t="advanced"></summary>
+        <label for="apiKey" data-t="apiKey"></label>
+        <input id="apiKey" autocomplete="off">
+        <p style="margin-top:4px"><span id="apiKeyHint"></span> <a href="https://www.opensubtitles.com/consumers" target="_blank" rel="noopener" data-t="apiKeyLink"></a></p>
+      </details>
+      <div class="actions">
+        <button class="primary" data-t="save" onclick="save()"></button>
+        <span class="status" id="saveStatus"></span>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <span id="configPath"></span>
+    <button data-t="quit" onclick="quit()"></button>
+  </footer>
+</main>
+<script>
+const strings = {
+  en: {
+    tagline: "Finds and downloads subtitles from OpenSubtitles.",
+    needKeyTitle: "One step before starting",
+    needKeyText: "This copy of the app has no API key built in. Open Settings, then Advanced, and paste your free OpenSubtitles API key.",
+    getTitle: "Subtitle for a video",
+    getText: "Pick a video. The subtitle is saved next to it with the same name.",
+    filePlaceholder: "Video file path",
+    folderPlaceholder: "Folder path",
+    choose: "Choose…",
+    download: "Download subtitle",
+    searching: "Searching…",
+    watchTitle: "Watch a folder",
+    watchText: "Every new video that shows up in the folder gets a subtitle automatically. Keep this app open.",
+    watchStart: "Start watching",
+    watchStop: "Stop watching",
+    watchingIn: "Watching",
+    activity: "Activity",
+    noActivity: "Nothing yet.",
+    saved: "Subtitle saved",
+    settings: "Settings",
+    accountTitle: "OpenSubtitles account (optional)",
+    accountText: "Without an account you can download 5 subtitles per day. Sign in with a free account to get more.",
+    signUp: "Create a free account",
+    username: "Username",
+    password: "Password",
+    passwordKept: "saved, leave empty to keep it",
+    accountOk: "Signed in as {level}. {remaining} of {allowed} downloads left today.",
+    noAccount: "Not signed in: 5 downloads per day.",
+    langsTitle: "Languages",
+    advanced: "Advanced",
+    apiKey: "API key",
+    apiKeyBuiltIn: "Optional. The app already comes with a key; fill this only to use your own.",
+    apiKeyNeeded: "Required for this copy of the app.",
+    apiKeyLink: "Create a key",
+    left: "{n} downloads left today",
+    lang1: "Preferred language",
+    lang2: "Second language, used when the first has no subtitle",
+    none: "None",
+    save: "Save",
+    savedSettings: "Saved.",
+    quit: "Quit",
+    configAt: "Settings file:",
+    closed: "Subtitle Watcher was closed. You can close this tab.",
+    noKey: "Add your API key in Settings first.",
+    notFolder: "This folder does not exist.",
+    notFile: "This file does not exist.",
+    noPicker: "No file dialog on this system. Type or paste the path.",
+    offline: "The app is not running. Open Subtitle Watcher again.",
+    notFound: "No subtitle found in the chosen languages.",
+    loginFailed: "Wrong username or password. Fix it in Settings.",
+    quota: "Daily download limit reached. Try again tomorrow or sign in with an account in Settings.",
+    tooMany: "Too many requests. Wait a few seconds and try again.",
+    badKey: "OpenSubtitles refused the API key. Check it in Settings, Advanced.",
+    serverError: "OpenSubtitles is having trouble right now. Try again in a few minutes.",
+    network: "Could not reach OpenSubtitles. Check your internet connection.",
+    writeFailed: "Could not save the subtitle next to the video. Check that the folder is not read-only.",
+    unexpected: "Something went wrong. The terminal window shows the details."
+  },
+  pt: {
+    tagline: "Procura e baixa legendas do OpenSubtitles.",
+    needKeyTitle: "Um passo antes de começar",
+    needKeyText: "Esta cópia do app não vem com chave da API. Abra Configurações, depois Avançado, e cole sua chave gratuita do OpenSubtitles.",
+    getTitle: "Legenda para um vídeo",
+    getText: "Escolha um vídeo. A legenda é salva ao lado dele, com o mesmo nome.",
+    filePlaceholder: "Caminho do vídeo",
+    folderPlaceholder: "Caminho da pasta",
+    choose: "Escolher…",
+    download: "Baixar legenda",
+    searching: "Procurando…",
+    watchTitle: "Monitorar uma pasta",
+    watchText: "Todo vídeo novo que aparecer na pasta ganha legenda automaticamente. Deixe este app aberto.",
+    watchStart: "Começar a monitorar",
+    watchStop: "Parar de monitorar",
+    watchingIn: "Monitorando",
+    activity: "Atividade",
+    noActivity: "Nada ainda.",
+    saved: "Legenda salva",
+    settings: "Configurações",
+    accountTitle: "Conta do OpenSubtitles (opcional)",
+    accountText: "Sem conta você baixa 5 legendas por dia. Entre com uma conta gratuita para baixar mais.",
+    signUp: "Criar conta gratuita",
+    username: "Usuário",
+    password: "Senha",
+    passwordKept: "salva, deixe vazio para manter",
+    accountOk: "Conectado como {level}. Restam {remaining} de {allowed} downloads hoje.",
+    noAccount: "Sem conta: 5 downloads por dia.",
+    langsTitle: "Idiomas",
+    advanced: "Avançado",
+    apiKey: "Chave da API",
+    apiKeyBuiltIn: "Opcional. O app já vem com uma chave; preencha só para usar a sua.",
+    apiKeyNeeded: "Obrigatória nesta cópia do app.",
+    apiKeyLink: "Criar uma chave",
+    left: "restam {n} downloads hoje",
+    lang1: "Idioma preferido",
+    lang2: "Segundo idioma, usado quando o primeiro não tem legenda",
+    none: "Nenhum",
+    save: "Salvar",
+    savedSettings: "Salvo.",
+    quit: "Sair",
+    configAt: "Arquivo de configurações:",
+    closed: "O Subtitle Watcher foi fechado. Pode fechar esta aba.",
+    noKey: "Coloque sua chave da API nas Configurações primeiro.",
+    notFolder: "Esta pasta não existe.",
+    notFile: "Este arquivo não existe.",
+    noPicker: "Este sistema não tem janela de escolha. Digite ou cole o caminho.",
+    offline: "O app não está rodando. Abra o Subtitle Watcher de novo.",
+    notFound: "Nenhuma legenda encontrada nos idiomas escolhidos.",
+    loginFailed: "Usuário ou senha errados. Corrija nas Configurações.",
+    quota: "Limite diário de downloads atingido. Tente amanhã ou entre com uma conta nas Configurações.",
+    tooMany: "Muitas requisições. Espere alguns segundos e tente de novo.",
+    badKey: "O OpenSubtitles recusou a chave da API. Confira em Configurações, Avançado.",
+    serverError: "O OpenSubtitles está com problemas agora. Tente de novo em alguns minutos.",
+    network: "Não foi possível falar com o OpenSubtitles. Confira sua conexão com a internet.",
+    writeFailed: "Não foi possível salvar a legenda ao lado do vídeo. Confira se a pasta não é somente leitura.",
+    unexpected: "Algo deu errado. A janela do terminal mostra os detalhes."
+  }
+};
+const uiLang = navigator.language.toLowerCase().startsWith("pt") ? "pt" : "en";
+const t = (k, vars) => (strings[uiLang][k] || strings.en[k] || k).replace(/\{(\w+)\}/g, (_, v) => vars[v]);
+const savedText = e => t("saved") + " (" + (names.of(e.lang) || e.lang) + ", " + t("left", { n: e.remaining }) + ")";
+const langs = ["ar","bg","cs","da","de","el","en","es","fi","fr","he","hr","hu","id","it","ja","ko","nl","no","pl","pt-br","pt-pt","ro","ru","sv","th","tr","uk","vi","zh-cn","zh-tw"];
+const names = new Intl.DisplayNames([navigator.language], { type: "language" });
+const token = new URLSearchParams(location.search).get("t");
+const $ = id => document.getElementById(id);
+let state = null;
+
+document.documentElement.lang = uiLang === "pt" ? "pt-BR" : "en";
+document.querySelectorAll("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+document.querySelectorAll("[data-ph]").forEach(el => el.placeholder = t(el.dataset.ph));
+
+async function api(path, body) {
+  let res;
+  try {
+    res = await fetch("/api/" + path, {
+      method: body === undefined ? "GET" : "POST",
+      headers: { "X-Token": token, "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+  } catch { throw new Error(t("offline")); }
+  const data = res.status === 204 ? null : await res.json().catch(() => null);
+  if (!res.ok) throw new Error(t((data && data.error) || "offline"));
+  return data;
+}
+
+function fillLangs(select, value, allowNone) {
+  const options = (allowNone ? [["", t("none")]] : []).concat(
+    langs.map(code => [code, names.of(code) || code]).sort((a, b) => a[1].localeCompare(b[1])));
+  select.replaceChildren(...options.map(([code, name]) => new Option(name, code, false, code === value)));
+}
+
+function render() {
+  const cfg = state.config;
+  $("needKey").hidden = !state.needKey;
+  $("watchBtn").textContent = state.watching ? t("watchStop") : t("watchStart");
+  $("watchStatus").textContent = state.watching ? t("watchingIn") + " " + state.watching : "";
+  $("watchStatus").className = "status" + (state.watching ? " ok" : "");
+  $("configPath").textContent = "v" + state.version + " · " + t("configAt") + " " + state.configPath;
+  const list = (state.events || []).slice().reverse();
+  $("events").replaceChildren(...(list.length ? list.map(e => {
+    const li = document.createElement("li");
+    const name = e.file.split(/[\\/]/).pop();
+    li.textContent = name + " ";
+    const status = document.createElement("span");
+    status.className = e.error ? "err" : "ok";
+    status.textContent = e.error ? t(e.error) : savedText(e);
+    const when = document.createElement("small");
+    when.textContent = new Date(e.time).toLocaleString();
+    li.append(status, when);
+    return li;
+  }) : [Object.assign(document.createElement("li"), { textContent: t("noActivity"), className: "status" })]));
+}
+
+async function refresh(first) {
+  try {
+    state = await api("state");
+  } catch (e) {
+    $("watchStatus").textContent = e.message;
+    $("watchStatus").className = "status err";
+    return;
+  }
+  if (first) {
+    const cfg = state.config;
+    $("apiKey").value = cfg.apiKey || "";
+    $("username").value = cfg.username || "";
+    $("password").placeholder = state.hasPassword ? t("passwordKept") : "";
+    fillLangs($("lang1"), (cfg.langs || [])[0] || "pt-br", false);
+    fillLangs($("lang2"), (cfg.langs || [])[1] || "", true);
+    $("folder").value = state.watching || cfg.folder || "";
+    $("apiKeyHint").textContent = state.builtInKey ? t("apiKeyBuiltIn") : t("apiKeyNeeded");
+    $("settings").open = $("advanced").open = state.needKey;
+  }
+  render();
+}
+
+async function choose(folder) {
+  const target = folder ? $("folder") : $("file");
+  const status = folder ? $("watchStatus") : $("getStatus");
+  try {
+    const { path } = await api("pick", { folder });
+    if (path) target.value = path;
+  } catch (e) {
+    status.textContent = e.message;
+    status.className = "status err";
+    target.focus();
+  }
+}
+
+async function getOne() {
+  const status = $("getStatus");
+  status.textContent = t("searching");
+  status.className = "status";
+  $("getBtn").disabled = true;
+  try {
+    const e = await api("get", { path: $("file").value });
+    status.textContent = e.error ? t(e.error) : savedText(e);
+    status.className = "status " + (e.error ? "err" : "ok");
+  } catch (e) {
+    status.textContent = e.message;
+    status.className = "status err";
+  }
+  $("getBtn").disabled = false;
+  await refresh();
+}
+
+async function toggleWatch() {
+  try {
+    await api("watch", { path: state.watching ? "" : $("folder").value });
+    await refresh();
+  } catch (e) {
+    $("watchStatus").textContent = e.message;
+    $("watchStatus").className = "status err";
+  }
+}
+
+async function save() {
+  const langsChosen = [$("lang1").value, $("lang2").value].filter((v, i, a) => v && a.indexOf(v) === i);
+  try {
+    await api("config", {
+      apiKey: $("apiKey").value.trim(),
+      username: $("username").value.trim(),
+      password: $("password").value,
+      langs: langsChosen
+    });
+    $("password").value = "";
+    $("saveStatus").textContent = t("savedSettings");
+    $("saveStatus").className = "status ok";
+    await refresh(true);
+    await checkAccount();
+  } catch (e) {
+    $("saveStatus").textContent = e.message;
+    $("saveStatus").className = "status err";
+  }
+}
+
+async function checkAccount() {
+  const status = $("accountStatus");
+  if (!state || !state.config.username) {
+    status.textContent = t("noAccount");
+    status.className = "status";
+    return;
+  }
+  status.textContent = t("searching");
+  status.className = "status";
+  try {
+    status.textContent = t("accountOk", await api("account", {}));
+    status.className = "status ok";
+  } catch (e) {
+    status.textContent = e.message;
+    status.className = "status err";
+  }
+}
+
+async function quit() {
+  await api("quit", {}).catch(() => {});
+  document.body.replaceChildren(Object.assign(document.createElement("main"), { textContent: t("closed") }));
+}
+
+refresh(true).then(checkAccount);
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
