@@ -19,7 +19,11 @@ import (
 
 const defaultBaseURL = "https://api.opensubtitles.com/api/v1"
 
-var errNotFound = errors.New("subtitle not found")
+var (
+	errNotFound = errors.New("subtitle not found")
+	errNotFile  = errors.New("not a video file")
+	errWrite    = errors.New("cannot save the subtitle")
+)
 
 // apiError keeps the HTTP status so callers can tell a wrong password (401)
 // from a used up daily quota (406) or rate limiting (429).
@@ -92,6 +96,9 @@ type subtitle struct {
 func (c *client) Fetch(video string, langs []string) (lang string, remaining int, err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if info, err := os.Stat(video); err != nil || !info.Mode().IsRegular() {
+		return "", 0, fmt.Errorf("%w: %s", errNotFile, video)
+	}
 	q := url.Values{}
 	if hash, err := movieHash(video); err == nil {
 		q.Set("moviehash", hash)
@@ -128,13 +135,16 @@ func (c *client) Fetch(video string, langs []string) (lang string, remaining int
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", 0, fmt.Errorf("download: %s", resp.Status)
+		return "", 0, &apiError{Status: resp.StatusCode, Msg: "download: " + resp.Status}
 	}
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", 0, err
 	}
-	return lang, dl.Remaining, os.WriteFile(srtPath(video), data, 0o644)
+	if err := os.WriteFile(srtPath(video), data, 0o644); err != nil {
+		return "", 0, fmt.Errorf("%w: %v", errWrite, err)
+	}
+	return lang, dl.Remaining, nil
 }
 
 // Account logs in again and returns the user's level and daily quota.
@@ -243,7 +253,8 @@ func (c *client) do(method, path string, body, out any) error {
 }
 
 // movieHash is the OpenSubtitles hash: file size plus the 64-bit little-endian
-// sums of the first and last 64 KiB.
+// sums of the first and last 64 KiB. Like the reference implementation it only
+// accepts 128 KiB to 9 GB; other files are searched by name alone.
 func movieHash(path string) (string, error) {
 	const chunk = 64 * 1024
 	f, err := os.Open(path)
@@ -255,8 +266,8 @@ func movieHash(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if fi.Size() < chunk {
-		return "", errors.New("file too small to hash")
+	if fi.Size() < 2*chunk || fi.Size() > 9_000_000_000 {
+		return "", errors.New("file size out of the hash range")
 	}
 	hash := uint64(fi.Size())
 	buf := make([]byte, chunk)

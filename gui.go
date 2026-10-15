@@ -8,8 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -132,6 +134,7 @@ func (a *app) saveConfig(w http.ResponseWriter, r *http.Request) {
 func (a *app) account(w http.ResponseWriter, r *http.Request) {
 	acc, err := a.client.Account()
 	if err != nil {
+		log.Printf("account: %v", err)
 		replyErr(w, errorCode(err))
 		return
 	}
@@ -151,8 +154,16 @@ func errorCode(err error) string {
 		return "quota"
 	case apiStatus(err) == http.StatusTooManyRequests:
 		return "tooMany"
+	case apiStatus(err) >= 500:
+		return "serverError"
+	case errors.Is(err, errNotFile):
+		return "notFile"
+	case errors.Is(err, errWrite):
+		return "writeFailed"
+	case errors.As(err, new(*url.Error)):
+		return "network"
 	}
-	return err.Error()
+	return "unexpected"
 }
 
 func (a *app) pick(w http.ResponseWriter, r *http.Request) {
@@ -222,6 +233,7 @@ func (a *app) fetch(video string) event {
 	e := event{Time: time.Now(), File: video, Lang: lang, Remaining: remaining}
 	if err != nil {
 		e.Error = errorCode(err)
+		log.Printf("%s: %v", video, err) // full detail stays in the terminal
 	}
 	a.mu.Lock()
 	a.events = append(a.events, e)

@@ -100,6 +100,10 @@ func main() {
 	every := flag.Duration("every", 10*time.Second, "how often watch scans the folder")
 	flag.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	flag.Parse()
+	if *every <= 0 {
+		fmt.Fprintln(os.Stderr, "-every must be greater than zero")
+		os.Exit(2)
+	}
 
 	if flag.Arg(0) == "version" {
 		fmt.Println("subtitlewatcher", version)

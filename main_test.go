@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -137,5 +140,42 @@ func TestAccount(t *testing.T) {
 	acc, err := c.Account()
 	if err != nil || acc.Remaining != 18 || acc.Allowed != 20 {
 		t.Fatalf("Account = %+v, %v", acc, err)
+	}
+}
+
+func TestFetchRejectsNonFiles(t *testing.T) {
+	c := newClient("key", "", "")
+	c.baseURL = "http://127.0.0.1:1" // must not be reached
+	for _, path := range []string{t.TempDir(), filepath.Join(t.TempDir(), "missing.mkv")} {
+		if _, _, err := c.Fetch(path, []string{"en"}); errorCode(err) != "notFile" {
+			t.Fatalf("Fetch(%s) = %v", path, err)
+		}
+	}
+}
+
+func TestMovieHashRange(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "small.mkv")
+	os.WriteFile(path, make([]byte, 128*1024-1), 0o644)
+	if _, err := movieHash(path); err == nil {
+		t.Fatal("hashed a file below 128 KiB")
+	}
+}
+
+func TestErrorCode(t *testing.T) {
+	cases := map[string]error{
+		"notFound":    errNotFound,
+		"loginFailed": &apiError{Status: 401},
+		"badKey":      &apiError{Status: 403},
+		"quota":       &apiError{Status: 406},
+		"tooMany":     &apiError{Status: 429},
+		"serverError": &apiError{Status: 502},
+		"writeFailed": fmt.Errorf("%w: disk full", errWrite),
+		"network":     &url.Error{Op: "Get", URL: "x", Err: errors.New("timeout")},
+		"unexpected":  errors.New("boom"),
+	}
+	for want, err := range cases {
+		if got := errorCode(err); got != want {
+			t.Errorf("errorCode(%v) = %s, want %s", err, got, want)
+		}
 	}
 }
