@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: false # no dependencies, so no go.sum to key the cache
       - run: go vet ./...
       - run: go test ./...
 
@@ -34,6 +35,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: false # no dependencies, so no go.sum to key the cache
       - name: Build archives
         env:
           # The key only goes into tagged releases, never into PR artifacts.
